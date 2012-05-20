@@ -24,6 +24,15 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+define('WP_STR_SHOW_FFXIV_NFO_PORT', '/<!-- FFXIV_port(\((([0-9],|[0-9]|,)*?)\))? -->/i');
+define('WP_STR_SHOW_FFXIV_NFO_LAND', '/<!-- FFXIV_land(\((([0-9],|[0-9]|,)*?)\))? -->/i');
+
+require('wplib/utils_formbuilder.inc.php');
+require('wplib/utils_sql.inc.php');
+require('wplib/utils_tablebuilder.inc.php');
+
+include_once('apiv3.php');
+
 // Admin section
 // -------------
 add_action('admin_menu', 'FFXIV_menu');
@@ -74,7 +83,7 @@ function FFXIV_Conf()
 
 	$formElem = new FormElement('FFXIV_setting_linkshell', 'FFXIV Character Linkshell ID');
 	$formElem->value = $setting_char_linkshell;
-	$formElem->description = "This will be grabbed from http://xivpads.com/?-Linkshells and doing a search and getting the resulting http://xivpads.com/?ls/<lsid>";
+	$formElem->description = "This will be grabbed from <a href='http://xivpads.com/?-Linkshells' target='_blank'>http://xivpads.com/?-Linkshells</a> and doing a search and getting the resulting http://xivpads.com/?ls/<lsid>";
 	$form->addFormElement($formElem);
 
 	echo $form->toString();
@@ -97,29 +106,104 @@ function FFXIV_install()
 	$wpdb->show_errors();
 }
 
-
 // Retrieval section
 // ------------------
-include_once('apiv3.php');
-
-// Call the XIVPads API
-$API = new LodestoneAPI();
-
-// Pull character information
-$Result = $API->SearchCharacter($name, $server);
-
-
-// Set data
-if ($Result[0])
+function FFXIVPads_Get()
 {
-	$API->v3GetProfile();
-	$API->v3GetHistory(0);
-	$API->v3GetAvatars();
-	$API->GetLinkshellData($lsid);
+	global $cname,$cserver,$cavatar,$lsname,$lsemb;
+
+	$name = get_option('FFXIV_setting_name');
+	$server = get_option('FFXIV_setting_server');
+	$lsid = get_option('FFXIV_setting_linkshell');
+
+	// Call the XIVPads API
+	$API = new LodestoneAPI();
+
+	// Pull character information
+	$Result = $API->SearchCharacter($name, $server);
+
+	// Set data
+	if ($Result[0])
+	{
+		$API->v3GetProfile();
+		$API->v3GetHistory(0);
+		$API->v3GetAvatars();
+		$API->GetLinkshellData($lsid);
+	}
+
+	$cname = $API->player_name;
+	$cserver = $API->player_server;
+	$cavatar = $API->player_avatar;
+	$lsname = $API->linkshell_name;
+	$lsemb = $API->linkshell_emblem;
 }
 
-$cname = $API->player_name;
-$cserver = $API->player_server;
-$cavater = $API->player_avatar;
+// Display character information
+// ------------------------------
+function FFXIV_Character_show_port($oldcontent)
+{
+	// Ensure we don't lose the original page
+	$newcontent = $oldcontent;
+
+	// Detect if we need to render the information by looking for the 
+	// special string <!-- FFXIV_port -->
+	if (preg_match(WP_STR_SHOW_FFXIV_NFO_PORT, $oldcontent, $matches))
+	{
+		// Turn DB stuff into HTML
+		$content = FFXIV_Render_Port();
+
+		// Now replace search string with formatted information
+		$newcontent = ffxiv_replace_string($matches[0], $content, $oldcontent);
+	}
+	return $newcontent;
+}
+
+add_filter('widget_text', 'FFXIV_Character_show_port');
+
+function FFXIV_Character_show_land($oldcontent)
+{
+	// Ensure we don't lose the original page
+	$newcontent = $oldcontent;
+
+	// Detect if we need to render the information by looking for the 
+	// special string <!-- FFXIV_land -->
+	if (preg_match(WP_STR_SHOW_FFXIV_NFO_LAND, $oldcontent, $matches))
+	{
+		// Turn DB stuff into HTML
+		$content = FFXIV_Render_Land();
+
+		// Now replace search string with formatted information
+		$newcontent = ffxiv_replace_string($matches[0], $content, $oldcontent);
+	}
+	return $newcontent;
+}
+
+add_filter('the_content', 'FFXIV_Character_show_land');
+
+function ffxiv_replace_string($searchstr, $replacestr, $haystack) {
+
+	// Faster, but in PHP5.
+	if (function_exists("str_ireplace")) {
+		return str_ireplace($searchstr, $replacestr, $haystack);
+	}
+	// Slower but handles PHP4
+	else { 
+		return preg_replace("/$searchstr/i", $replacestr, $haystack);
+	}
+}
+
+function FFXIV_Render_Port()
+{
+	FFXIVPads_Get();
+	$content = "<h2><small>TEST TEXT</small></h2>";
+	//$content = "<h2><small>".$cname."</small></h2>";
+	return $content;
+}
+
+function FFXIV_Render_Land()
+{
+
+}
+
 
 ?>
