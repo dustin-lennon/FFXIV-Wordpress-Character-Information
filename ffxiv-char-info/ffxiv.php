@@ -126,7 +126,6 @@ function FFXIVPads_Get()
 	if ($Result[0])
 	{
 		$API->v3GetProfileData();
-		$API->v3GetHistory(0);
 		$API->v3GetAvatars();
 		$API->GetLinkshellData($lsid);
 	}
@@ -140,7 +139,8 @@ function FFXIVPads_Get()
 				   "Nation"		=> $API->player_profile['Nation'],
 				   "BDate"		=> $API->player_profile['Birthdate'],
 				   "Guardian"	=> $API->player_profile['Guardian'],
-				   "Active"		=> $API->player_profile['Active']);
+				   "Active"		=> $API->player_profile['Active'],
+				   "Skills"		=> $API->player_skills);
 
 	return $ffxiv;
 }
@@ -206,79 +206,118 @@ function FFXIV_Render_Port()
 	// Remove the | in player_profile['Race']
 	$ffxiv['Race'] = str_replace("|", " ", $ffxiv['Race']);
 
-	$classes = array("Alechemist","Archer","Armorer","Blacksmith","Botanist","Carpenter","Conjurer","Fisher","Gladiator","Goldsmith","Lancer","Marauder","Miner",
-					"Pugilist","Tanner","Thaumaturge","Weaver");
+	$skills = $ffxiv['Skills'];
 
-	$icons_class = array("Alchemist"		=> plugins_url('images/classes/Alchemist.png', __FILE__),
-						 "Archer"			=> plugins_url('images/classes/Archer.png', __FILE__),
-						 "Armorer"			=> plugins_url('images/classes/Armorer.png', __FILE__),
-						 "Blacksmith"		=> plugins_url('images/classes/Blacksmith.png', __FILE__),
-						 "Botanist"			=> plugins_url('images/classes/Botanist.png', __FILE__),
-						 "Carpenter"		=> plugins_url('images/classes/Carpenter.png', __FILE__),
-						 "Conjurer"			=> plugins_url('images/classes/Conjurer.png', __FILE__),
-						 "Fisher"			=> plugins_url('images/classes/Fisher.png', __FILE__),
-						 "Gladiator"		=> plugins_url('images/classes/Gladiator.png', __FILE__),
-						 "Goldsmith"		=> plugins_url('images/classes/Goldsmith.png', __FILE__),
-						 "Lancer"			=> plugins_url('images/classes/Lacer.png', __FILE__),
-						 "Marauder"			=> plugins_url('images/classes/Marauder.png', __FILE__),
-						 "Miner"			=> plugins_url('images/classes/Miner.png', __FILE__),
-						 "Pugilist"			=> plugins_url('images/classes/Pugilist.png', __FILE__),
-						 "Tanner"			=> plugins_url('images/classes/Tanner.png', __FILE__),
-						 "Thaumaturge"		=> plugins_url('images/classes/Thaumaturge.png', __FILE__),
-						 "Weaver"			=> plugins_url('images/classes/Weaver.png', __FILE__));
+	$classes = array('Gladiator'	=> array('IMG'		=> plugins_url('images/classes/Gladiator.png', __FILE__), 
+											 'LEVEL'	=> $skills['Gladiator']['LEVEL'],
+											 'EXP'		=> $skills['Gladiator']['EXP']),
+					 'Pugilist'		=> array('IMG'		=> plugins_url('images/classes/Pugilist.png', __FILE__),
+											 'LEVEL'	=> $skills['Pugilist']['LEVEL'],
+											 'EXP'		=> $skills['Pugilist']['EXP']),
+					 'Marauder'		=> array('IMG'		=> plugins_url('images/classes/Marauder.png', __FILE__),
+											 'LEVEL'	=> $skills['Marauder']['LEVEL'],
+											 'EXP'		=> $skills['Marauder']['EXP']),
+					 'Lancer'		=> array('IMG'		=> plugins_url('images/classes/Lancer.png', __FILE__),
+											 'LEVEL'	=> $skills['Lancer']['LEVEL'],
+											 'EXP'		=> $skills['Lancer']['EXP']),
+					 'Archer'		=> array('IMG'		=> plugins_url('images/classes/Archer.png', __FILE__),
+											 'LEVEL'	=> $skills['Archer']['LEVEL'],
+											 'EXP'		=> $skills['Archer']['EXP']),
+					 'Conjurer'		=> array('IMG'		=> plugins_url('images/classes/Conjurer.png', __FILE__),
+											 'LEVEL'	=> $skills['Conjurer']['LEVEL'],
+											 'EXP'		=> $skills['Conjurer']['EXP']),
+					 'Thaumaturge'	=> array('IMG'		=> plugins_url('images/classes/Thaumaturge.png', __FILE__),
+											 'LEVEL'	=> $skills['Thaumaturge']['LEVEL'],
+											 'EXP'		=> $skills['Thaumaturge']['EXP']),
+					 'Carpenter'	=> array('IMG'		=> plugins_url('images/classes/Carpenter.png', __FILE__),
+											 'LEVEL'	=> $skills['Carpenter']['LEVEL'],
+											 'EXP'		=> $skills['Carpenter']['EXP']),
+					 'Blacksmith'	=> array('IMG'		=> plugins_url('images/classes/Blacksmith.png', __FILE__),
+											 'LEVEL'	=> $skills['Blacksmith']['LEVEL'],
+											 'EXP'		=> $skills['Blacksmith']['EXP']),
+					 'Armorer'		=> array('IMG'		=> plugins_url('images/classes/Armorer.png', __FILE__),
+											 'LEVEL'	=> $skills['Armorer']['LEVEL'],
+											 'EXP'		=> $skills['Armorer']['EXP']),
+					 'Goldsmith'	=> array('IMG'		=> plugins_url('images/classes/Goldsmith.png', __FILE__),
+											 'LEVEL'	=> $skills['Goldsmith']['LEVEL'],
+											 'EXP'		=> $skills['Goldsmith']['EXP']),
+					 'Tanner'		=> array('IMG'		=> plugins_url('images/classes/Tanner.png', __FILE__),
+											 'LEVEL'	=> $skills['Tanner']['LEVEL'],
+											 'EXP'		=> $skills['Tanner']['EXP']),
+					 'Weaver'		=> array('IMG'		=> plugins_url('images/classes/Weaver.png', __FILE__),
+											 'LEVEL'	=> $skills['Weaver']['LEVEL'],
+											 'EXP'		=> $skills['Weaver']['EXP']),
+					 'Alchemist'	=> array('IMG'		=> plugins_url('images/classes/Alchemist.png', __FILE__),
+											 'LEVEL'	=> $skills['Alchemist']['LEVEL'],
+											 'EXP'		=> $skills['Alchemist']['EXP']),
+					 'Culinarian'	=> array('IMG'		=> plugins_url('images/classes/Culinarian.png', __FILE__),
+											 'LEVEL'	=> $skills['Culinarian']['LEVEL'],
+											 'EXP'		=> $skills['Culinarian']['EXP']),
+					 'Miner'		=> array('IMG'		=> plugins_url('images/classes/Miner.png', __FILE__),
+											 'LEVEL'	=> $skills['Miner']['LEVEL'],
+											 'EXP'		=> $skills['Miner']['EXP']),
+					 'Botanist'		=> array('IMG'		=> plugins_url('images/classes/Botanist.png', __FILE__),
+											 'LEVEL'	=> $skills['Botanist']['LEVEL'],
+											 'EXP'		=> $skills['Botanist']['EXP']),
+					 'Fisher'		=> array('IMG'		=> plugins_url('images/classes/Fisher.png', __FILE__),
+											 'LEVEL'	=> $skills['Fisher']['LEVEL'],
+											 'EXP'		=> $skills['Fisher']['EXP']));
 
 	switch ($ffxiv['Active'])
 	{
 		case 'Alchemist':
-			$aicon = $icons_class['Alchemist'];
+			$aicon = $classes['Alchemist']['IMG'];
 			break;
 		case 'Archer':
-			$aicon = $icons_class['Archer'];
+			$aicon = $classes['Archer']['IMG'];
 			break;
 		case 'Armorer':
-			$aicon = $icons_class['Armorer'];
+			$aicon = $classes['Armorer']['IMG'];
 			break;
 		case 'Blacksmith':
-			$aicon = $icons_class['Blacksmith'];
+			$aicon = $classes['Blacksmith']['IMG'];
 			break;
 		case 'Botanist':
-			$aicon = $icons_class['Botanist'];
+			$aicon = $classes['Botanist']['IMG'];
 			break;
 		case 'Carpenter':
-			$aicon = $icons_class['Carpenter'];
+			$aicon = $classes['Carpenter']['IMG'];
 			break;
 		case 'Conjurer':
-			$aicon = $icons_class['Conjurer'];
+			$aicon = $classes['Conjurer']['IMG'];
+			break;
+		case 'Culinarian':
+			$aicon = $classes['Culinarian']['IMG'];
 			break;
 		case 'Fisher':
-			$aicon = $icons_class['Fisher'];
+			$aicon = $classes['Fisher']['IMG'];
 			break;
 		case 'Gladiator':
-			$aicon = $icons_class['Gladiator'];
+			$aicon = $classes['Gladiator']['IMG'];
 			break;
 		case 'Goldsmith':
-			$aicon = $icons_class['Goldsmith'];
+			$aicon = $classes['Goldsmith']['IMG'];
 			break;
 		case 'Lancer':
-			$aicon = $icons_class['Lancer'];
+			$aicon = $classes['Lancer']['IMG'];
 			break;
 		case 'Marauder':
-			$aicon = $icons_class['Marauder'];
+			$aicon = $classes['Marauder']['IMG'];
 			break;
 		case 'Miner':
-			$aicon = $icons_class['Miner'];
+			$aicon = $classes['Miner']['IMG'];
 			break;
 		case 'Pugilist':
-			$aicon = $icons_class['Pugilist'];
+			$aicon = $classes['Pugilist']['IMG'];
 			break;
 		case 'Tanner':
-			$aicon = $icons_class['Tanner'];
+			$aicon = $classes['Tanner']['IMG'];
 			break;
 		case 'Thaumaturge':
-			$aicon = $icons_class['Thaumaturge'];
+			$aicon = $classes['Thaumaturge']['IMG'];
 			break;
 		case 'Weaver':
-			$aicon = $icons_class['Weaver'];
+			$aicon = $classes['Weaver']['IMG'];
 			break;
 	}
 
@@ -339,14 +378,18 @@ function FFXIV_Render_Port()
 	$content .= "<small style='font-size: 10px'>".$ffxiv['Race']." of ".$ffxiv['Nation']."</small><br />";
 	$content .= "<small style='font-size: 10px'>".$ffxiv['BDate']."</small><br />";
 	$content .= "<img src='".$ffxiv['LsEmb']."' width='10%' height='10%' valign='top' /> <small style='font-size: 10px'>".$ffxiv['LsName']."</small>";
-	$content .= "<img src='".$gicon."' width='10%' height='10%' title='".$ffxiv['Guardian']."' style='float: right' /><br /><img src='".$aicon."' width='10%' height='10%' title='".$ffxiv['Active']."' style='float:right' />";
+	$content .= "<div id='tooltip'><img src='".$gicon."' width='10%' height='10%' title='".$ffxiv['Guardian']."' style='float: right' /><br /><img src='".$aicon."' width='10%' height='10%' title='".$ffxiv['Active']."' style='float:right' /></div>";
 	$content .= "<br /><hr style='border: 1px dashed' align='center' width='85%' />";
 
 	$content .= "<table width='100%'>";
 
-	foreach($classes as $class)
+	foreach($classes as $classname => $class)
 	{
-		$content .= "<tr><td><img src='".$icon_class[$class]."' /></td></tr>";
+			$content .= "<tr><td width='16'>";
+			$content .= "<div id='tooltip'><img src='".$class['IMG']."' width='16' height='16' title='".$classname."' /></div>";
+			$content .= "</td>";
+			$content .= "<td>".strtoupper($classname)."<br />Level: ".$class['LEVEL']."<br />Exp: ".$class['EXP']."<br /></td>";
+			$content .= "</tr>";
 	}
 
 	$content .= "</table>";
@@ -358,6 +401,4 @@ function FFXIV_Render_Land()
 {
 
 }
-
-
 ?>
