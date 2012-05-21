@@ -33,6 +33,8 @@ require('wplib/utils_tablebuilder.inc.php');
 
 include_once('apiv3.php');
 
+global $cname,$cserver,$cavatar,$lsname,$lsemb;
+
 // Admin section
 // -------------
 add_action('admin_menu', 'FFXIV_menu');
@@ -110,8 +112,6 @@ function FFXIV_install()
 // ------------------
 function FFXIVPads_Get()
 {
-	global $cname,$cserver,$cavatar,$lsname,$lsemb;
-
 	$name = get_option('FFXIV_setting_name');
 	$server = get_option('FFXIV_setting_server');
 	$lsid = get_option('FFXIV_setting_linkshell');
@@ -125,17 +125,24 @@ function FFXIVPads_Get()
 	// Set data
 	if ($Result[0])
 	{
-		$API->v3GetProfile();
+		$API->v3GetProfileData();
 		$API->v3GetHistory(0);
 		$API->v3GetAvatars();
 		$API->GetLinkshellData($lsid);
 	}
 
-	$cname = $API->player_name;
-	$cserver = $API->player_server;
-	$cavatar = $API->player_avatar;
-	$lsname = $API->linkshell_name;
-	$lsemb = $API->linkshell_emblem;
+	$ffxiv = array("CName"		=> $API->player_name,
+				   "CServer"	=> $API->player_server,
+				   "CAvatar"	=> $API->player_avatar,
+				   "LsName"		=> $API->linkshell_name,
+				   "LsEmb"		=> $API->linkshell_emblum,
+				   "Race"		=> $API->player_profile['Race'],
+				   "Nation"		=> $API->player_profile['Nation'],
+				   "BDate"		=> $API->player_profile['Birthdate'],
+				   "Guardian"	=> $API->player_profile['Guardian'],
+				   "Active"		=> $API->player_profile['Active']);
+
+	return $ffxiv;
 }
 
 // Display character information
@@ -194,9 +201,156 @@ function ffxiv_replace_string($searchstr, $replacestr, $haystack) {
 
 function FFXIV_Render_Port()
 {
-	FFXIVPads_Get();
-	$content = "<h2><small>TEST TEXT</small></h2>";
-	//$content = "<h2><small>".$cname."</small></h2>";
+	$ffxiv = FFXIVPads_Get();
+
+	// Remove the | in player_profile['Race']
+	$ffxiv['Race'] = str_replace("|", " ", $ffxiv['Race']);
+
+	$classes = array("Alechemist","Archer","Armorer","Blacksmith","Botanist","Carpenter","Conjurer","Fisher","Gladiator","Goldsmith","Lancer","Marauder","Miner",
+					"Pugilist","Tanner","Thaumaturge","Weaver");
+
+	$icons_class = array("Alchemist"		=> plugins_url('images/classes/Alchemist.png', __FILE__),
+						 "Archer"			=> plugins_url('images/classes/Archer.png', __FILE__),
+						 "Armorer"			=> plugins_url('images/classes/Armorer.png', __FILE__),
+						 "Blacksmith"		=> plugins_url('images/classes/Blacksmith.png', __FILE__),
+						 "Botanist"			=> plugins_url('images/classes/Botanist.png', __FILE__),
+						 "Carpenter"		=> plugins_url('images/classes/Carpenter.png', __FILE__),
+						 "Conjurer"			=> plugins_url('images/classes/Conjurer.png', __FILE__),
+						 "Fisher"			=> plugins_url('images/classes/Fisher.png', __FILE__),
+						 "Gladiator"		=> plugins_url('images/classes/Gladiator.png', __FILE__),
+						 "Goldsmith"		=> plugins_url('images/classes/Goldsmith.png', __FILE__),
+						 "Lancer"			=> plugins_url('images/classes/Lacer.png', __FILE__),
+						 "Marauder"			=> plugins_url('images/classes/Marauder.png', __FILE__),
+						 "Miner"			=> plugins_url('images/classes/Miner.png', __FILE__),
+						 "Pugilist"			=> plugins_url('images/classes/Pugilist.png', __FILE__),
+						 "Tanner"			=> plugins_url('images/classes/Tanner.png', __FILE__),
+						 "Thaumaturge"		=> plugins_url('images/classes/Thaumaturge.png', __FILE__),
+						 "Weaver"			=> plugins_url('images/classes/Weaver.png', __FILE__));
+
+	switch ($ffxiv['Active'])
+	{
+		case 'Alchemist':
+			$aicon = $icons_class['Alchemist'];
+			break;
+		case 'Archer':
+			$aicon = $icons_class['Archer'];
+			break;
+		case 'Armorer':
+			$aicon = $icons_class['Armorer'];
+			break;
+		case 'Blacksmith':
+			$aicon = $icons_class['Blacksmith'];
+			break;
+		case 'Botanist':
+			$aicon = $icons_class['Botanist'];
+			break;
+		case 'Carpenter':
+			$aicon = $icons_class['Carpenter'];
+			break;
+		case 'Conjurer':
+			$aicon = $icons_class['Conjurer'];
+			break;
+		case 'Fisher':
+			$aicon = $icons_class['Fisher'];
+			break;
+		case 'Gladiator':
+			$aicon = $icons_class['Gladiator'];
+			break;
+		case 'Goldsmith':
+			$aicon = $icons_class['Goldsmith'];
+			break;
+		case 'Lancer':
+			$aicon = $icons_class['Lancer'];
+			break;
+		case 'Marauder':
+			$aicon = $icons_class['Marauder'];
+			break;
+		case 'Miner':
+			$aicon = $icons_class['Miner'];
+			break;
+		case 'Pugilist':
+			$aicon = $icons_class['Pugilist'];
+			break;
+		case 'Tanner':
+			$aicon = $icons_class['Tanner'];
+			break;
+		case 'Thaumaturge':
+			$aicon = $icons_class['Thaumaturge'];
+			break;
+		case 'Weaver':
+			$aicon = $icons_class['Weaver'];
+			break;
+	}
+
+	$icons_guard = array("Althyk"		=> plugins_url('images/guardians/althyk.png', __FILE__),
+						 "Azeyma"		=> plugins_url('images/guardians/azeyma.png', __FILE__),
+						 "Byregot"		=> plugins_url('images/guardians/byregot.png', __FILE__),
+						 "Halone"		=> plugins_url('images/guardians/halone.png', __FILE__),
+						 "Llymlaen"		=> plugins_url('images/guardians/llymlaen.png', __FILE__),
+						 "Menphina"		=> plugins_url('images/guardians/menphina.png', __FILE__),
+						 "Naldthal"		=> plugins_url('images/guardians/naldthal.png', __FILE__),
+						 "Nophica"		=> plugins_url('images/guardians/nophica.png', __FILE__),
+						 "Nymeia"		=> plugins_url('images/guardians/nymeia.png', __FILE__),
+						 "Oschon"		=> plugins_url('images/guardians/oshon.png', __FILE__),
+						 "Rhalgr"		=> plugins_url('images/guardians/rhalgr.png', __FILE__),
+						 "Thaliak"		=> plugins_url('images/guardians/thaliak.png', __FILE__));
+
+	switch ($ffxiv['Guardian'])
+	{
+		case 'Althyk, the Keeper':
+			$gicon = $icons_guard['Althyk'];
+			break;
+		case 'Azeyma, the Warden':
+			$gicon = $icons_guard['Azeyma'];
+			break;
+		case 'Byregot, the Builder':
+			$gicon = $icons_guard['Byregot'];
+			break;
+		case 'Halone, the Fury':
+			$gicon = $icons_guard['Halone'];
+			break;
+		case 'Llymlaen, the Navigator':
+			$gicon = $icons_guard['Llymlaen'];
+			break;
+		case 'Menphina, the Lover':
+			$gicon = $icons_guard['Menphina'];
+			break;
+		case 'Nald\'thal, the Traders':
+			$gicon = $icons_guard['Naldthal'];
+			break;
+		case 'Nophica, the Matron':
+			$gicon = $icons_guard['Nophica'];
+			break;
+		case 'Nymeia, the Spinner':
+			$gicon = $icons_guard['Nymeia'];
+			break;
+		case 'Oschon, the Wanderer':
+			$gicon = $icons_guard['Oschon'];
+			break;
+		case 'Rhalgr, the Destroyer':
+			$gicon = $icons_guard['Rhalgr'];
+			break;
+		case 'Thaliak, the Scholar':
+			$gicon = $icons_guard['Thaliak'];
+			break;
+	}
+
+	$content = "<img src='".$ffxiv['CAvatar']."' width='25%' height='25%' align='left' /> <small style='font-size: 10px'>".$ffxiv['CName']." (".$ffxiv['CServer'].")</small><br />";
+	$content .= "<small style='font-size: 10px'>".$ffxiv['Race']." of ".$ffxiv['Nation']."</small><br />";
+	$content .= "<small style='font-size: 10px'>".$ffxiv['BDate']."</small><br />";
+	$content .= "<img src='".$ffxiv['LsEmb']."' width='10%' height='10%' valign='top' /> <small style='font-size: 10px'>".$ffxiv['LsName']."</small>";
+	$content .= "<img src='".$gicon."' width='10%' height='10%' title='".$ffxiv['Guardian']."' style='float: right' /><br /><img src='".$aicon."' width='10%' height='10%' title='".$ffxiv['Active']."' style='float:right' />";
+	$content .= "<br /><hr style='border: 1px dashed' align='center' width='85%' />";
+
+	$content .= "<table width='100%'>";
+
+	foreach($classes as $class)
+	{
+		$content .= "<tr><td><img src='".$icon_class[$class]."' /></td></tr>";
+	}
+
+	$content .= "</table>";
+
 	return $content;
 }
 

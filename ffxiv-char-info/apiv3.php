@@ -129,7 +129,7 @@ class LodestoneAPI
 	
 	# Servers
 	public $servers = array('Ridill', 'Masamune', 'Durandal', 'Aegis', 'Gungnir', 'Sargatanas', 
-					 'Balmung', 'Hyperion', 'Excalibur', 'Ragnarok');
+							'Balmung', 'Hyperion', 'Excalibur', 'Ragnarok');
 							
 	public $server_offsets = array('Durandal' => 2,
 								   'Hyperion' => 3,
@@ -175,7 +175,15 @@ class LodestoneAPI
 	// Test
 	public function Test()
 	{
-		Show('Running under: '. $this->player_cicuid);	
+		echo '<div style="padding:10px;font-family:Vendana !important;color:#fff !important;font-size:14px;background-color:#000000;">
+			  Running a page test for: 
+			  <a href="http://lodestone.finalfantasyxiv.com/rc/character/status?cicuid=1633645">
+			  http://lodestone.finalfantasyxiv.com/rc/character/status?cicuid=1633645
+			  </a>
+			  </div>';
+		
+		$Sourcecode = $this->GetSource('http://lodestone.finalfantasyxiv.com/rc/character/status?cicuid=1633645');
+		echo html_entity_decode($Sourcecode);
 	}
 	
 	#===========================================================================================================================#
@@ -189,9 +197,8 @@ class LodestoneAPI
 							 // Character offsets, related to "DataArray", some require additional layers so they have been split
 							 // into an multidmention array, each number represents 1 explode layer.
 							 // Profile 1
-							 "CHAR_AVATAR"			=> array(50,5),
-							 "CHAR_RACE"			=> array(55,12),
-							 "CHAR_ACTIVE"			=> array(59,2),
+							 "CHAR_RACE"			=> array(144,12),
+							 "CHAR_ACTIVE"			=> array(148,2),
 							 
 							 // Profile 2
 							 "CHAR_BIRTH"			=> array(2,5),
@@ -405,92 +412,39 @@ class LodestoneAPI
 			
 			// Set Array to work with.
 			// AVATAR, RACE, ACTIVE CLASS
-			$DataArray 			= explode("div", $SourceCode);
-			
-			//Show($this->Offsets["CHAR_AVATAR"]);
-			
-			//Show($DataArray);
-			// Avatar = 51
-			
-			$DataSize			= count($DataArray);
-			$DataSizeOffset 	= $DataSize - 60;
+			$DataArray 			= explode("=", $SourceCode);
+
+			$i = 0;
+			foreach($DataArray as $Line)
+			{
+				if (stripos($Line, 'charpage-charname-name') !== false)
+				{
+					$SmallArray 	= array_slice($DataArray, $i, 10);
+					$NameAndServer	= $SmallArray[2];
+					$NameAndServer	= explode("&quot;", $NameAndServer);
+					$NameAndServer	= $NameAndServer[1];
+					$NameAndServer	= explode(")", $NameAndServer);
+					$NameAndServer	= str_ireplace("&gt;", NULL, $NameAndServer);
+					$NameAndServer	= explode("(", $NameAndServer[0]);	
+				}
 				
-			
-			//Show($DataSize);	
-			//Show($DataSizeOffset);
-			//Show($DataArray);	
-			$NameAndServer		= $DataArray[76];
-			$NameAndServer		= explode('&quot;', $NameAndServer);
-			if (count($NameAndServer) > 2)
-			{
-				$NameAndServer		= $NameAndServer[4];
-				$NameAndServer		= trim(str_ireplace(array("&gt;", "/", "&lt;a", "&lt;", ")"), NULL, $NameAndServer));
-				$NameAndServer		= explode("(", $NameAndServer);
-			}
-			else
-			{
-				$NameAndServer		= $DataArray[27];
-				$NameAndServer		= explode('&quot;', $NameAndServer);
-				$NameAndServer		= $NameAndServer[4];
-				$NameAndServer		= trim(str_ireplace(array("&gt;", "/", "&lt;a", "&lt;", ")"), NULL, $NameAndServer));
-				$NameAndServer		= explode("(", $NameAndServer);
-			}
-			
-			// if server empty, name ad "div" in it
-			if (empty($NameAndServer[1]))
-			{
-				$NameAndServer		= $DataArray[76] .'div'. $DataArray[77];
-				$NameAndServer		= explode('&quot;', $NameAndServer);
-				$NameAndServer		= $NameAndServer[4];
-				$NameAndServer		= trim(str_ireplace(array("&gt;", "/", "&lt;a", "&lt;", ")"), NULL, $NameAndServer));
-				$NameAndServer		= explode("(", $NameAndServer);
+				if (stripos($Line, 'static2.finalfantasyxiv.com') !== false)
+				{
+					$Line = explode("&quot;", $Line);
+					$__Avatar = trim($Line[1]);
+				}
+				$i++;
 			}
 			
 			$this->player_name		= trim($NameAndServer[0]);
 			$this->player_server	= trim($NameAndServer[1]);
 			
-			//Show($NameAndServer);
-				
-			// Get Avatar
-			$SourceCode 		= $DataArray[$this->Offsets["CHAR_AVATAR"][0] + $DataSizeOffset];
-			$Search 			= stripos(trim($SourceCode), "static2");
-			if ($Search)
-			{
-				$Array 				= explode("&quot;", $SourceCode);
-				$__Avatar			= $Array[$this->Offsets["CHAR_AVATAR"][1]];
-				$__Avatar			= str_ireplace("div", NULL, $__Avatar);
-			}
-			else
-			{
-				$SourceCode 		= $DataArray[135];
-				$Array 				= explode("&quot;", $SourceCode);
-				$P1				 	= $Array[5];
-				$SourceCode 		= $DataArray[136];
-				$Array 				= explode("&quot;", $SourceCode);
-				$P2				 	= $Array[0];
-				$__Avatar			= $P1 .'div'. $P2;
-			}
-			
-			
-			if (empty($__Avatar) || stripos($__Avatar, "static") === false)
-			{
-				//Show($DataArray);
-				$SourceCode 		= $DataArray[145];
-				$Array 				= explode("&quot;", $SourceCode);
-				$P1				 	= $Array[5];
-				$SourceCode 		= $DataArray[146];
-				$Array 				= explode("&quot;", $SourceCode);
-				$P2				 	= $Array[0];
-				$__Avatar			= $P1 .'div'. $P2;
-			}
-			
-			$__Avatar			= str_ireplace(array("&lt;", "&gt;"), NULL, $__Avatar);
+			$DataArray 			= explode("div", $SourceCode);	
 			
 			// Get Race
-			$SourceCode 		= $DataArray[$this->Offsets["CHAR_RACE"][0] + $DataSizeOffset];
+			$SourceCode 		= $DataArray[$this->Offsets["CHAR_RACE"][0]];
 			$Array 				= explode("&quot;", $SourceCode);
-			
-			//Show($DataArray);
+
 			$__Race				= $Array[$this->Offsets["CHAR_RACE"][1]];
 			$__Race				= $this->Clean($__Race);
 			$RaceData			= explode("/", $__Race);
@@ -499,10 +453,30 @@ class LodestoneAPI
 			unset($RaceData);
 
 			// Get Active Class
-			$SourceCode 		= $DataArray[$this->Offsets["CHAR_ACTIVE"][0] + $DataSizeOffset];
+			$SourceCode 		= $DataArray[$this->Offsets["CHAR_ACTIVE"][0]];
 			$Array 				= explode("&quot;", $SourceCode);
 			$__ActiveClass		= $Array[$this->Offsets["CHAR_ACTIVE"][1]];
 			$__ActiveClass		= $this->Clean($__ActiveClass);
+			if (empty($__ActiveClass))
+			{
+				// Get Race
+				$SourceCode 		= $DataArray[$this->Offsets["CHAR_RACE"][0] - 4];
+				$Array 				= explode("&quot;", $SourceCode);
+				$__Race				= $Array[$this->Offsets["CHAR_RACE"][1]];
+				$__Race				= $this->Clean($__Race);
+				$RaceData			= explode("/", $__Race);
+				$__Race 			= array("Type" 		=> $RaceData[0], 
+											"Gender" 	=> str_ireplace(array("maletr", "femaletr", "FeMale"), array("Male", "Female", "Female"), $RaceData[1]));
+				unset($RaceData);
+	
+				// Get Active Class
+				$SourceCode 		= $DataArray[$this->Offsets["CHAR_ACTIVE"][0] - 4];
+				$Array 				= explode("&quot;", $SourceCode);
+				$__ActiveClass		= $Array[$this->Offsets["CHAR_ACTIVE"][1]];
+				$__ActiveClass		= $this->Clean($__ActiveClass);
+				
+				
+			}
 			
 			#===================================================================================================================#
 			# 2		Profile part 2																								#
@@ -1440,7 +1414,7 @@ $MICRO_START = Timer();
 
 # Testing
 $TestData 	=	array(
-					array("CICUID" 	=> 3049897,
+					array("CICUID" 	=> 1633645,
 						  "Name" 	=> "Katrine Youko",			//	0
 						  "Server" 	=> "Sargatanas"),
 						  
@@ -1469,11 +1443,13 @@ if (empty($TestNum))
 $API = new LodestoneAPI($TestData[$TestNum]['CICUID'], 
 						$TestData[$TestNum]['Name'], 
 						$TestData[$TestNum]['Server']);
+						
+//$API->Test();
 
 # Get Data
-//$Result = $API->v3GetProfileData();
-//$API->SearchCharacterURL('Katrine Youko', 'http://lodestone.finalfantasyxiv.com/rc/character/top?cicuid=13584304', 'Sargatanas'); 
 $Result = $API->v3GetProfileData();
+//$API->SearchCharacterURL('Katrine Youko', 'http://lodestone.finalfantasyxiv.com/rc/character/top?cicuid=13584304', 'Sargatanas'); 
+//$Result = $API->v3GetProfileData();
 //Show($Result);
 //if (!$Result[0])
 //	Show($Result[1]);
@@ -1490,7 +1466,7 @@ $Result = $API->v3GetProfileData();
 //$API->GetLinkshellData(1989304);
 //$API->GetLinkshellMembers();
 //Show($API->linkshell_members);
-echo '<hr />';
+//echo '<hr />';
 Show($API);
 
 #------------------------------------------------------------------------------------------------------------
