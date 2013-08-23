@@ -1,19 +1,20 @@
 <?php
 /**
  * Wordpress Table Builder Utility Class
- *
- * A group of classes designed to make it easier and quicker to create tables
- * within wordpress plugins for the admin section. Using this class should hopefully
+ * 
+ * A group of classes designed to make it easier and quicker to create tables 
+ * within wordpress plugins for the admin section. Using this class should hopefully 
  * reduce development and debugging time.
- *
- * This code is very much in alpha phase, and should not be distributed with plugins
+ * 
+ * This code is very much in alpha phase, and should not be distributed with plugins 
  * other than by Dan Harrison.
- *
- * @author Dan Harrison (http://www.danharrison.co.uk)
+ *  
+ * @author Dan Harrison of WP Doctors (http://www.wpdoctors.co.uk)
  *
  * Version History
- *
+ * 
  * V0.01 - Initial version released.
+ * V0.02 - Added CSS capability to data row.
  *
  */
 
@@ -21,7 +22,7 @@
  * Class that represents a HTML table for the Wordpress admin area.
  */
 if (!class_exists('TableBuilder')) { class TableBuilder {
-
+	
 	/**
 	 * An array of HTML attributes to apply to the table.
 	 * @var Array A list of (attribute name => attribute value) pairs.
@@ -58,10 +59,19 @@ if (!class_exists('TableBuilder')) { class TableBuilder {
 
 	/**
 	 * Add the specified row to the table builder.
-	 * @param $column The row to add to the table.
+	 * @param $data The row to add to the table.
+	 * @param $rowClass The CSS class for the row, or false if there isn't one.
 	 */
-	function addRow($row) {
-		array_push($this->rowList, $row);
+	function addRow($data, $rowClass = false) {
+		$newRow = new RowData($data, $rowClass);
+		$this->rowList[] = $newRow;
+	}
+
+	/**
+	 * Empty the list of row data.
+	 */
+	function emptyData() {
+		$this->rowList = array();
 	}
 
 	/**
@@ -72,13 +82,20 @@ if (!class_exists('TableBuilder')) { class TableBuilder {
 
 		// Determine attributes and add them to the end of the table
 		$attributeString = "";
+		$attr_class_set = false; // Flag to determine if class already been set.
+
 		if (count($this->attributes) > 0) {
 			foreach ($this->attributes as $aname => $avalue) {
-				$attributeString .= "$aname=$avalue ";
+				$attributeString .= "$aname=\"$avalue\" ";
 			}
 		}
 
-		$resultString = "\n<table class=\"widefat\" $attributeString>";
+		// Set default class of widefat if no class has been specified.
+		if (!$attr_class_set) {
+			$attributeString .= "class=\"widefat\"";
+		}
+
+		$resultString = "\n<table $attributeString>";
 
 		// Print the column header and footer
 		$columnHeader = "\t<tr>";
@@ -95,18 +112,26 @@ if (!class_exists('TableBuilder')) { class TableBuilder {
 		$resultString .= "\n<tbody>";
 
 		// Handle columns for each row
-		foreach ($this->rowList as $rowdata)
+		foreach ($this->rowList as $rowDataObj)
 		{
-			$resultString .= "<tr>";
+			$rowdata = $rowDataObj->getRowData();
+			$rowclass = $rowDataObj->getRowClass();
+
+			// Add the CSS class for the row if there is one.
+			if ($rowclass) {
+				$resultString .= sprintf('<tr class="%s">', $rowclass);
+			} else {
+				$resultString .= "<tr>";
+			}
 
 			// Use columns to determine order of data in table
 			foreach ($this->columnList as $columnObj)
 			{
 				$celldata = "";
 
-				// If there's matching data for this column, add it to cell,
+				// If there's matching data for this column, add it to cell, 
 				// otherwise leave the cell empty.
-				if (isset($rowdata[$columnObj->columnKey])) {
+				if (isset($rowdata[$columnObj->columnKey])) {  
 					$celldata = $rowdata[$columnObj->columnKey];
 				}
 
@@ -119,8 +144,51 @@ if (!class_exists('TableBuilder')) { class TableBuilder {
 
 		// Close remaining tags
 		$resultString .= "\n</tbody>";
-		$resultString .= "\n</table><br/>";
+		$resultString .= "\n</table>";
 		return $resultString;
+	}
+
+}
+
+/**
+ * Class that represents a single row of data in the table.
+ */
+class RowData {
+	
+	/**
+	 * The list of data entries as key => value.
+	 * @var Array
+	 */
+	private $dataList;
+
+	/**
+	 * The CSS class for the data row (Default is false).
+	 * @var String
+	 */
+	private $rowClass;
+
+	/**
+	 * Constructor
+	 */
+	function RowData($data, $rowClass = false) {
+		$this->dataList = $data;
+		$this->rowClass = $rowClass;
+	}
+
+	/**
+	 * Return the list of data entries as a key => value array.
+	 * @return Array
+	 */
+	function getRowData() {
+		return $this->dataList;
+	}
+
+	/**
+	 * Returns the row class (or false if there isn't one).
+	 * @return String
+	 */
+	function getRowClass() {
+		return $this->rowClass;
 	}
 
 }
@@ -129,7 +197,7 @@ if (!class_exists('TableBuilder')) { class TableBuilder {
  * Class that represents a table column for use with <code>TableBuilder</code>.
  */
 class TableColumn {
-
+	
 	/**
 	 * The table title for this column. 
 	 * @var String
@@ -143,7 +211,7 @@ class TableColumn {
 	public $columnKey;
 
 	/**
-	 * The HTML class associated with a table header cell.
+	 * The HTML class associated with a table header cell. 
 	 * @var String
 	 */
 	public $headerClass;
@@ -180,7 +248,7 @@ class TableColumn {
 	}
 
 	/**
-	 * Converts the specified data into a correctly formatted cell data,
+	 * Converts the specified data into a correctly formatted cell data, 
 	 * using the style associated with this column.
 	 * @param $data The data string to insert between &lt;td&gt;&lt;/td&gt; tags.
 	 * @return String The HTML for the correctly formatted cell data.
