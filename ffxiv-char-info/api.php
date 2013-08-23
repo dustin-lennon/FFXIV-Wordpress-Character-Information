@@ -92,11 +92,11 @@
 		{
 			if (!$Name)
 			{
-				echo "error: No Name Set.";	
+				echo "error: No Name Set.";
 			}
 			else if (!$Server)
 			{
-				echo "error: No Server Set.";	
+				echo "error: No Server Set.";
 			}
 			else
 			{
@@ -156,7 +156,7 @@
 				else
 				{
 					$this->Search['total'] = 0;
-					$this->Search['results'] = NULL;	
+					$this->Search['results'] = NULL;
 				}
 			}
 		}
@@ -173,12 +173,12 @@
 		{
 			if (!$ID)
 			{
-				echo "error: No ID Set.";	
+				echo "error: No ID Set.";
 			}
 			else
 			{
 				// Get the source
-				$this->getSource($this->URL['profile'] . $ID);	
+				$this->getSource($this->URL['profile'] . $ID);
 
 				// Create a new character object
 				$Character = new Character();
@@ -244,7 +244,7 @@
 		public function parseBiography($ID)
 		{
 			// Get the source
-			$this->getSource($this->URL['profile'] . $ID);	
+			$this->getSource($this->URL['profile'] . $ID);
 
 			// Create a new character object
 			$Character = new Character();
@@ -257,7 +257,7 @@
 		}
 
 		// Get a list of parsed characters.
-		public function getCharacters() { return $this->Characters;	}
+		public function getCharacters() { return $this->Characters; }
 
 		// Get a list of parsed characters.
 		public function getCharacterByID($ID) { return $this->Characters[$ID]; }
@@ -274,7 +274,7 @@
 		{
 			if (!$ID)
 			{
-				echo "error: No ID Set.";	
+				echo "error: No ID Set.";
 			}
 			else
 			{
@@ -698,7 +698,7 @@
 		// POINTS
 		public function setPoints($String)
 		{
-			$this->TotalPoints = trim($String[0]);	
+			$this->TotalPoints = trim($String[0]);
 		}
 		public function getPoints() { return $this->TotalPoints; }
 
@@ -739,7 +739,7 @@
 			}
 
 			// Set Achievement List
-			$this->List = $NewList;	
+			$this->List = $NewList;
 		}
 		public function get() { return $this->List; }
 	}
