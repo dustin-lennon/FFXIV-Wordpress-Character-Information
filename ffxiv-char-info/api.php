@@ -27,7 +27,7 @@
 			'achievement' 	=> '/achievement/',
 			'search'		=> '?q=%name%&worldname=%server%'
 		);
-	
+
 		// Configuration
 		public $AchievementCategories = array(13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24);
 		public $ClassList = array();
@@ -399,7 +399,7 @@
 			if (isset($String))
 			{
 				$this->Avatars['50'] = trim(explode('&quot;', $String)[1]);
-				$this->Avatars['64'] = str_ireplace("50x50", "60x60", $this->Avatars['50']);
+				$this->Avatars['64'] = str_ireplace("50x50", "64x64", $this->Avatars['50']);
 				$this->Avatars['96'] = str_ireplace("50x50", "96x96", $this->Avatars['50']);
 			}
 		}
@@ -753,7 +753,7 @@
 		// POINTS
 		public function setPoints($String)
 		{
-			$this->TotalPoints = trim($String[0]);	
+			$this->TotalPoints = trim($String[0]);
 		}
 		public function getPoints() { return $this->TotalPoints; }
 
