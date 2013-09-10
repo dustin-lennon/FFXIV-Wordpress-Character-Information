@@ -182,6 +182,17 @@ function FFXIV_Get()
 		"Cname"		=> $character->getName(),
 		"Lodestone"	=> $character->getLodestone(),
 		"Server" 	=> $character->getServer(),
-		"Avatar"	=> $character->getAvatar($size)
+		"Avatar"	=> $character->getAvatar($size),
+		"Portrait"	=> $character->getPortrait(),
+		"Race"		=> $character->getRace(),
+		"City"		=> $character->getCity(),
+		"NDay"		=> $character->getNameday(),
+		"Guardian"	=> $character->getGuardian(),
+		"Clan"		=> $character->getClan(),
+		"GCName"	=> $character->getCompanyName(),
+		"GCRank"	=> $character->getCompanyRank(),
+		"Biography"	=> $character->getBiography(),
+		"AClass"	=> $character->getActiveClass(),
+		"ALevel"	=> $character->getActiveLevel(),
 	);
 }
