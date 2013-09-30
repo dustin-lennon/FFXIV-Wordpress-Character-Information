@@ -13,7 +13,7 @@
 	*/
 
 	// Debug stuff
- 	#error_reporting(-1);
+	#error_reporting(-1);
 	//function show($Data) { echo '<pre>'; print_r($Data); echo '</pre>'; }
 
 	/*	LodestoneAPI
@@ -25,7 +25,8 @@
 		private $URL = array(
 			'profile'		=> 'http://na.finalfantasyxiv.com/lodestone/character/',
 			'achievement' 	=> '/achievement/',
-			'search'		=> '?q=%name%&worldname=%server%'
+			'search'		=> '?q=%name%&worldname=%server%',
+			'freecompany' => 'http://na.finalfantasyxiv.com/lodestone/freecompany/'
 		);
 
 		// Configuration
@@ -37,6 +38,10 @@
 		public $Characters 		= array();
 		public $Achievements 	= array();
 		public $Search 			= array();
+
+		//List of Companydata parsed
+		public $FreeCompanyList 	     = array();
+		public $FreeCompanyMembersList = array();
 
 		public function __construct()
 		{
@@ -97,7 +102,7 @@
 		{
 			if (!$Name)
 			{
-				echo "error: No Name Set.";	
+				echo "error: No Name Set.";
 			}
 			else if (!$Server)
 			{
@@ -173,6 +178,90 @@
 			}
 		}
 
+		// Search a free company by company id
+		public function searchFreeCompanyById($CompanyId)
+		{
+			if (!$CompanyId)
+			{
+				echo "error: No CompanyID Set.";
+			}
+			else
+			{
+				// Get the source
+				$this->getSource($this->URL['freecompany'] . preg_replace('![^0-9]!', '', $CompanyId));
+				// Get all found data
+				$Found = $this->findAll('table_style2', 50, NULL, true);
+
+				//results
+				if ($Found)
+				{
+					$FreeCompanyName = $Found[0][1];
+					$ActiveMembers = $Found[0][6];
+					$CompanySlogan  = $Found[0][8];
+
+					// Append search results
+					$this->FreeCompanyList['results'] = array(
+							"freecompanyname" 	=> $FreeCompanyName,
+							"activemembers"		=> $ActiveMembers,
+							"companyslogan"	=> $CompanySlogan,
+						);
+				}
+			}
+		}
+
+		// Search all free company members by company id
+		public function searchFreeCompanyMembersById($CompanyId, $Subsite = '/member/')
+		{
+			if (!$CompanyId)
+			{
+				echo "error: No CompanyID Set.";
+			}
+			else
+			{
+				//If Company was not searched before, search it, because I need the count of members
+				if(!array_key_exists('activemembers', $this->FreeCompanyList))
+				{
+					$SearchResult = $this->searchFreeCompanyById($CompanyId);
+				}
+
+				//Count of member pages
+				$CountMember = $this->FreeCompanyList['results']['activemembers'];
+				$CountMemberpages = ceil($CountMember/20);
+
+				$CompanyMembers = array();
+
+				//walk through all mamber pages
+				for ($i = 1; $i <= $CountMemberpages; $i++)
+				{
+					// Get the source
+					$this->getSource($this->URL['freecompany'] . preg_replace('![^0-9]!', '', $CompanyId) . $Subsite . '?page=' . $i);
+					// Get all found data
+					$Found = $this->findAll('player_name_area', 15, 'col2box clearfix', true);
+
+					//for each person on the site (19 persons per site)
+					for ($j = 0; $j <= 19; $j++)
+					{
+						//if it is an existing person
+						if(array_key_exists($j, $Found))
+						{
+							//add data to the array
+							$Result = preg_replace ('#\(.*?\)#m' , '' , $Found[$j]);  //preg_replace to delete Server (all persons of one company are at one server.)
+							$Result[0] = htmlspecialchars_decode(trim($Result[0]), ENT_QUOTES);  //Save Player name with normal characters
+							array_push($CompanyMembers, $Result);
+						}
+					}
+					// Append search results
+					$this->FreeCompanyMembersList['results'] = $CompanyMembers;
+				}
+			}
+		}
+
+		// Get company search results
+		public function getSearchFreeCompany() { return $this->FreeCompanyList; }
+
+		// Get company members search results
+		public function getSearchFreeCompanyMembers() { return $this->FreeCompanyMembersList; }		
+		
 		// Get search results
 		public function getSearch() { return $this->Search; }
 
@@ -184,13 +273,13 @@
 
 			// Check character tag
 			$PageNotFound = $this->find('/lodestone/character/');
-
+			
 			// if not found, error.
 			if (!$PageNotFound) { return true; }
 
 			return false;
 		}
-
+		
 		#-------------------------------------------#
 		# PROFILE									#
 		#-------------------------------------------#
@@ -284,7 +373,7 @@
 		public function parseBiography($ID)
 		{
 			// Get the source
-			$this->getSource($this->URL['profile'] . $ID);	
+			$this->getSource($this->URL['profile'] . $ID);
 
 			// Create a new character object
 			$Character = new Character();
@@ -414,8 +503,9 @@
 		// NAME + SERVER
 		public function setNameServer($String)
 		{
-			$this->Name 	= htmlspecialchars_decode(trim($String[0]), ENT_QUOTES);
-			$this->Server 	= str_ireplace(array("(", ")"), NULL, trim($String[1]));
+			$Data = str_ireplace(")", "", explode("(", (trim($String[0]))));
+			$this->Name 	= htmlspecialchars_decode(trim($Data[0]), ENT_QUOTES);
+			$this->Server 	= htmlspecialchars_decode(trim($Data[1]), ENT_QUOTES);
 			$this->NameClean= preg_replace('/[^a-z]/i', '', strtolower($this->Name));
 
 		}
@@ -949,7 +1039,7 @@
 				return false;
 		}
 
-		// Finds all entries based on a tag, and take the next I amount
+		// Finds all entries based on a tag, and take the next i amount
 		protected function findAll($Tag, $Range, $Tag2 = NULL, $Clean = TRUE)
 		{
 			$Found 		= false;
@@ -1033,7 +1123,7 @@
 			// Return value
 			return $Line;
 		}
-
+		
 		// Prints the source array
 		public function printSourceArray()
 		{
@@ -1043,7 +1133,7 @@
 		// Get the DOMDocument from the source via its URL.
 		protected function getSource($URL)
 		{
-			// Get the source of the URL
+			// Get the source of the url
 			# Show($URL);
 			$Source = $this->curl($URL);
 			$this->SourceCodeArray = explode("\n", $Source);
@@ -1077,11 +1167,11 @@
 	/*
 	$API = new LodestoneAPI();
 	$Character = $API->get(array(
-		'name' => 'Premium Virtue', 
+		'name' => 'Nemi Chan', 
 		'server' => 'Excalibur',
 	));
 
-	Show($Character->getClassJobsOrdered(false, 'numbered'));
+	Show($Character);
 	*/
 
 ?>
