@@ -1,3 +1,4 @@
 test.php
 *.phps
 old.txt
+*.db
