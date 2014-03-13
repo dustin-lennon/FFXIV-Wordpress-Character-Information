@@ -1,13 +1,13 @@
 <?php
 /*
-Plugin Name: FFXI Character Stats for Wordpress
+Plugin Name: FFXIV Character Stats for Wordpress
 Description: Add FFXIV Character Information to your site.
 Version: 1.0
 Author: Demonicpagan
 Author URI: http://ffxiv.stelth2000inc.com
 
 
-Copyright 2007-2012  Demonicpagan  (email : demonicpagan@gmail.com)
+Copyright 2007-2014  Demonicpagan  (email : demonicpagan@gmail.com)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -132,7 +132,7 @@ function FFXIV_Character_show_land($oldcontent)
 	if (preg_match(WP_STR_SHOW_FFXIV_NFO_LAND, $oldcontent, $matches))
 	{
 		// Turn DB stuff into HTML
-		$content = FFXIV_Render_Land();
+		$content = FFXIV_Render_Land(); // See mibbit-ajax-irc-for-wordpress for example
 
 		// Now replace search string with formatted information
 		$newcontent = ffxiv_replace_string($matches[0], $content, $oldcontent);
@@ -140,7 +140,7 @@ function FFXIV_Character_show_land($oldcontent)
 	return $newcontent;
 }
 
-add_filter('widget_text', 'FFXIV_Character_show_port');
+add_filter('widget_text', 'FFXIV_Character_show_land');
 
 // <!-- FFXIV_port -->
 function FFXIV_Character_show_port($oldcontent)
@@ -153,7 +153,7 @@ function FFXIV_Character_show_port($oldcontent)
 	if (preg_match(WP_STR_SHOW_FFXIV_NFO_PORT, $oldcontent, $matches))
 	{
 		// Turn DB stuff into HTML
-		$content = FFXIV_Render_Port();
+		$content = FFXIV_Render_Port(); // See mibbit-ajax-irc-for-wordpress for example
 
 		// Now replace search string with formatted information
 		$newcontent = ffxiv_replace_string($matches[0], $content, $oldcontent);

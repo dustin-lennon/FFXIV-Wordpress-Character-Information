@@ -98,7 +98,7 @@
                 "Armorer", "Goldsmith", "Leatherworker", "Weaver", "Alchemist", "Culinarian", "Miner", "Botanist", "Fisher"
             );
             
-            // Set class by disicpline                          
+            // Set class by discipline                          
             $this->ClassDisicpline = array(
                 "dow" => array_slice($this->ClassList, 0, 5),
                 "dom" => array_slice($this->ClassList, 5, 3),
