@@ -2123,7 +2123,7 @@
 
         // GET STAT FUNC
         public function getStat($Type, $Attribute) { if (isset($this->Stats[$Type])) { return $this->Stats[$Type][$Attribute]; } else { return 0; }}
-        public function getStats() { return $this->Stats; }
+        public function get
 
         // ACTIVE CLASS + LEVEL
         public function setActiveClassLevel($Arr)

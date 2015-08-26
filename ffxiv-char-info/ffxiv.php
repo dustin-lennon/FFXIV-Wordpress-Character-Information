@@ -43,7 +43,7 @@ function FFXIV_install()
 		update_option('FFXIV_setting_name', 'Some name');
 
 	if (!get_option('FFXIV_setting_server'))
-		update_option('FFXIV_setting_server', 'Durandal');
+		update_option('FFXIV_setting_server', 'Sargatanas');
 
 	$wpdb->show_errors();
 }
@@ -175,7 +175,10 @@ function FFXIV_Get()
 	$API = new LodestoneAPI();
 
 	// Parse the character
-	$character = $API->get($name, $server);
+	$character = $API->get([
+		'name'		=>	$name, 
+		'server'	=>	$server
+	]);
 
 	$ffxiv = array(
 		"ID"		=> $character->getID(),
